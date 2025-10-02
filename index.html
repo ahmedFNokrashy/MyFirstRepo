@@ -1,10 +1,53 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
-  <title>My First GitHub Page</title>
+  <meta charset="utf-8"/>
+  <title>Check-in</title>
+  <style>body{font-family:Segoe UI,Arial;padding:20px}button{padding:12px 18px;font-size:16px}</style>
 </head>
 <body>
-  <h1>Hello, world! 👋</h1>
-  <p>This is my first web page hosted on GitHub Pages.</p>
+  <h2>Lecture Check-in</h2>
+  <button id="btn">Check In</button>
+  <p id="status"></p>
+
+  <script>
+    async function checkIn() {
+      const s = document.getElementById('status');
+      s.textContent = 'Checking...';
+
+      try {
+        // 1) get public IP from ipify (runs from user's browser)
+        const ipRes = await fetch('https://api.ipify.org?format=json');
+        const ipJson = await ipRes.json();
+        const ip = ipJson.ip || '';
+
+        // 2) prepare payload
+        const payload = {
+          ip: ip,
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+          name: '' // optional: you can let the user enter a name or leave blank
+        };
+
+        // 3) POST to your Flow webhook
+        const resp = await fetch('YOUR_FLOW_URL_HERE', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (resp.ok) {
+          s.textContent = 'Checked in ✓ — IP: ' + ip;
+        } else {
+          const t = await resp.text();
+          s.textContent = 'Error saving: ' + resp.status + ' ' + t;
+        }
+      } catch (err) {
+        s.textContent = 'Error: ' + err;
+      }
+    }
+
+    document.getElementById('btn').addEventListener('click', checkIn);
+  </script>
 </body>
 </html>
